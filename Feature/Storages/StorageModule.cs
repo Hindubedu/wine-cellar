@@ -26,8 +26,13 @@ public class StorageModule : ICarterModule
                 "/storage/add",
                 (HttpContext context, StorageRequest storage, ApplicationDbContext dbContext) =>
                 {
+                    if (storage.Temperature == 0)
+                    {
+                        storage.Temperature = dbContext
+                            .Cellars.First(x => x.Id == storage.CellarId)
+                            .Temperature;
+                    }
                     var newStorage = new Storage(storage);
-                    var userId = context.GetUserId();
                     dbContext.Cellars.First(x => x.Id == storage.CellarId).Storages.Add(newStorage);
                     dbContext.SaveChanges();
 

@@ -49,7 +49,13 @@ public class WinesModule : ICarterModule
                 (HttpContext context, WineRequest wine, ApplicationDbContext dbContext) =>
                 {
                     var newWine = new Wine(wine);
-                    dbContext.Storages.First(x => x.Id == wine.StorageId).Wines.Add(newWine);
+                    dbContext
+                        .Storages.Where(storage =>
+                            storage.Cellar.Users.FirstOrDefault(e => e.Id == context.GetUserId())
+                            != null
+                        )
+                        .First(x => x.Id == wine.StorageId)
+                        .Wines.Add(newWine);
                     dbContext.SaveChanges();
 
                     return newWine;
@@ -61,7 +67,7 @@ public class WinesModule : ICarterModule
             .RequireAuthorization();
 
         app.MapDelete(
-                "/delete/{wineId:int}",
+                "/wine/delete/{wineId:int}",
                 (HttpContext context, ApplicationDbContext dbContext, int wineId) =>
                 {
                     var existingWine = dbContext.Wines.Find(wineId);
@@ -81,7 +87,7 @@ public class WinesModule : ICarterModule
             .IncludeInOpenApi();
 
         app.MapPost(
-                "/update",
+                "/wine/update",
                 (HttpContext context, ApplicationDbContext dbContext, WineRequest userWine) =>
                 {
                     var existingWine = dbContext.Wines.FirstOrDefault(wine =>
@@ -107,8 +113,17 @@ public class WinesModule : ICarterModule
                 "/wine/{wineId:int}",
                 (HttpContext context, ApplicationDbContext dbContext, int wineId) =>
                 {
-                    var wine = dbContext.Wines.FirstOrDefault(wine => wine.Id == wineId);
-                    return wine;
+                    var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
+                        cellar.Users.FirstOrDefault(user => user.Id == context.GetUserId()) != null
+                    );
+
+                    if (cellar is null)
+                    {
+                        return Results.NotFound("Cellar not found");
+                    }
+
+                    var wine = dbContext.Wines.Find(wineId);
+                    return Results.Ok(wine);
                 }
             )
             .Produces<Wine>()

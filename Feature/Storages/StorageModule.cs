@@ -32,8 +32,14 @@ public class StorageModule : ICarterModule
                             .Cellars.First(x => x.Id == storage.CellarId)
                             .Temperature;
                     }
+
                     var newStorage = new Storage(storage);
-                    dbContext.Cellars.First(x => x.Id == storage.CellarId).Storages.Add(newStorage);
+                    dbContext
+                        .Cellars.Where(cellar =>
+                            cellar.Users.FirstOrDefault(e => e.Id == context.GetUserId()) != null
+                        )
+                        .First(x => x.Id == storage.CellarId)
+                        .Storages.Add(newStorage);
                     dbContext.SaveChanges();
 
                     return newStorage;
@@ -113,10 +119,17 @@ public class StorageModule : ICarterModule
                 "storage/{storageId:int}",
                 (HttpContext context, ApplicationDbContext dbContext, int storageId) =>
                 {
-                    var storage = dbContext.Storages.FirstOrDefault(storage =>
-                        storage.Id == storageId
+                    var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
+                        cellar.Users.FirstOrDefault(user => user.Id == context.GetUserId()) != null
                     );
-                    return storage;
+
+                    if (cellar is null)
+                    {
+                        return Results.NotFound("Cellar not found");
+                    }
+
+                    var storage = dbContext.Storages.Find(storageId);
+                    return Results.Ok(storage);
                 }
             )
             .Produces<Storage>()

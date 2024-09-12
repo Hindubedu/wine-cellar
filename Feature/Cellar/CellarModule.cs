@@ -40,6 +40,44 @@ namespace WineCellar.Feature.Cellars
                 .WithTags("Cellar")
                 .WithName("GetCellars")
                 .IncludeInOpenApi();
+
+            app.MapGet(
+                    "/cellar/{cellarId:int}",
+                    (HttpContext context, ApplicationDbContext dbContext, int cellarId) =>
+                    {
+                        var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
+                            cellar.Id == cellarId
+                        );
+                        return cellar;
+                    }
+                )
+                .Produces<Cellar>()
+                .RequireAuthorization()
+                .WithTags("Cellar")
+                .WithName("GetCellar")
+                .IncludeInOpenApi();
+
+            app.MapPost(
+                    "/cellar/add",
+                    (HttpContext context, CellarRequest request, ApplicationDbContext dbContext) =>
+                    {
+                        Cellar cellar = new Cellar(request);
+                        var user = dbContext.Users.FirstOrDefault(user =>
+                            user.Id == context.GetUserId()
+                        );
+                        if (user is null)
+                        {
+                            return Results.BadRequest();
+                        }
+                        user.Cellars.Add(cellar);
+                        dbContext.SaveChanges();
+                        return Results.Ok();
+                    }
+                )
+                .WithTags("Cellar")
+                .WithName("AddCellar")
+                .IncludeInOpenApi()
+                .RequireAuthorization();
         }
     }
 }

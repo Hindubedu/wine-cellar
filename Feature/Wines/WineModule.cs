@@ -30,9 +30,7 @@ public class WinesModule : ICarterModule
                 {
                     var wines = dbContext
                         .Wines.Where(wine =>
-                            wine.Storage.Cellar.Users.FirstOrDefault(user =>
-                                user.Id == context.GetUserId()
-                            ) != null
+                            wine.Storage.Cellar.Users.Any(user => user.Id == context.GetUserId())
                         )
                         .ToList();
                     return wines;

@@ -144,6 +144,11 @@ public class StorageModule : ICarterModule
                 {
                     var wines = dbContext
                         .Storages.Include(storage => storage.Wines)
+                        .Where(storage =>
+                            storage.Cellar.Users.FirstOrDefault(user =>
+                                user.Id == context.GetUserId()
+                            ) != null
+                        )
                         .First(storage => storage.Id == storageId)
                         .Wines;
                     return wines;

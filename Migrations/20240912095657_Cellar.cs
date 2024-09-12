@@ -23,7 +23,19 @@ namespace WineCellar.Migrations
                 table: "Wines");
 
             migrationBuilder.DropIndex(
+                name: "IX_Wines_Description",
+                table: "Wines");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Wines_Quantity",
+                table: "Wines");
+
+            migrationBuilder.DropIndex(
                 name: "IX_Wines_UserId",
+                table: "Wines");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Wines_Year",
                 table: "Wines");
 
             migrationBuilder.DropColumn(
@@ -51,7 +63,7 @@ namespace WineCellar.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddColumn<int>(
-                name: "ExpirationDate",
+                name: "ExpirationTime",
                 table: "Wines",
                 type: "INTEGER",
                 nullable: true);
@@ -96,19 +108,9 @@ namespace WineCellar.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Wines_ExpirationDate",
+                name: "IX_Wines_ExpirationTime",
                 table: "Wines",
-                column: "ExpirationDate");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Storages_Capacity",
-                table: "Storages",
-                column: "Capacity");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Storages_Temperature",
-                table: "Storages",
-                column: "Temperature");
+                column: "ExpirationTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Storages_Type",
@@ -170,23 +172,15 @@ namespace WineCellar.Migrations
                 name: "Cellars");
 
             migrationBuilder.DropIndex(
-                name: "IX_Wines_ExpirationDate",
+                name: "IX_Wines_ExpirationTime",
                 table: "Wines");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Storages_Capacity",
-                table: "Storages");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Storages_Temperature",
-                table: "Storages");
 
             migrationBuilder.DropIndex(
                 name: "IX_Storages_Type",
                 table: "Storages");
 
             migrationBuilder.DropColumn(
-                name: "ExpirationDate",
+                name: "ExpirationTime",
                 table: "Wines");
 
             migrationBuilder.RenameColumn(
@@ -215,9 +209,24 @@ namespace WineCellar.Migrations
                 defaultValue: 0);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Wines_Description",
+                table: "Wines",
+                column: "Description");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wines_Quantity",
+                table: "Wines",
+                column: "Quantity");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Wines_UserId",
                 table: "Wines",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Wines_Year",
+                table: "Wines",
+                column: "Year");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Storages_Users_UserId",

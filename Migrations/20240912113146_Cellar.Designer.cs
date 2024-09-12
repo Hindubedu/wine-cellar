@@ -11,7 +11,7 @@ using WineCellar.Persistence;
 namespace WineCellar.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240912095657_Cellar")]
+    [Migration("20240912113146_Cellar")]
     partial class Cellar
     {
         /// <inheritdoc />
@@ -56,11 +56,7 @@ namespace WineCellar.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Location");
-
                     b.HasIndex("Name");
-
-                    b.HasIndex("Temperature");
 
                     b.ToTable("Cellars");
                 });

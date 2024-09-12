@@ -11,9 +11,7 @@ public class CellarConfiguration : IEntityTypeConfiguration<Cellar>
         builder.HasKey(e => e.Id);
         builder.HasIndex(e => e.Name);
         builder.Property(e => e.Name).HasMaxLength(50);
-        builder.HasIndex(e => e.Location);
         builder.Property(e => e.Location).HasMaxLength(100);
-        builder.HasIndex(e => e.Temperature);
         builder
             .HasMany(e => e.Storages)
             .WithOne(e => e.Cellar)

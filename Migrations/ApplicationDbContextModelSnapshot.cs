@@ -53,11 +53,7 @@ namespace WineCellar.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Location");
-
                     b.HasIndex("Name");
-
-                    b.HasIndex("Temperature");
 
                     b.ToTable("Cellars");
                 });

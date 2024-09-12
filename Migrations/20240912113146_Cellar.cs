@@ -118,19 +118,9 @@ namespace WineCellar.Migrations
                 column: "Type");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Cellars_Location",
-                table: "Cellars",
-                column: "Location");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Cellars_Name",
                 table: "Cellars",
                 column: "Name");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cellars_Temperature",
-                table: "Cellars",
-                column: "Temperature");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CellarUser_UsersId",

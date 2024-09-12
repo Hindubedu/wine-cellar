@@ -1,10 +1,6 @@
-using System;
 using Carter;
 using Carter.OpenApi;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Mvc;
 using WineCellar.Domain;
 using WineCellar.Persistence;
 
@@ -32,7 +28,12 @@ namespace WineCellar.Feature.Cellars
                                 != null
                             )
                             .ToList();
-                        return cellars;
+
+                        if (cellars.Count == 0)
+                        {
+                            return Results.NotFound("No cellars found");
+                        }
+                        return Results.Ok(cellars);
                     }
                 )
                 .Produces<List<Cellar>>()
@@ -48,7 +49,11 @@ namespace WineCellar.Feature.Cellars
                         var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
                             cellar.Id == cellarId
                         );
-                        return cellar;
+                        if (cellar is null)
+                        {
+                            return Results.BadRequest("Cellar not found");
+                        }
+                        return Results.Ok(cellar);
                     }
                 )
                 .Produces<Cellar>()
@@ -78,6 +83,68 @@ namespace WineCellar.Feature.Cellars
                 .WithName("AddCellar")
                 .IncludeInOpenApi()
                 .RequireAuthorization();
+
+            app.MapPost(
+                    "/cellar/edit",
+                    (HttpContext context, CellarRequest request, ApplicationDbContext dbContext) =>
+                    {
+                        var exsistingCellar = dbContext.Cellars.FirstOrDefault(x =>
+                            x.Id == request.Id
+                        );
+                        if (exsistingCellar is null)
+                        {
+                            return Results.NotFound("Cellar not found");
+                        }
+                        CellarMutator.MutateCellar(request, exsistingCellar);
+                        dbContext.SaveChanges();
+
+                        return Results.Ok(exsistingCellar);
+                    }
+                )
+                .WithTags("Cellar")
+                .WithName("UpdateCellar")
+                .IncludeInOpenApi()
+                .RequireAuthorization();
+
+            app.MapDelete(
+                    "/cellar/delete/{cellarId:int}",
+                    (HttpContext context, ApplicationDbContext dbContext, int cellarId) =>
+                    {
+                        var existingCellar = dbContext.Cellars.Find(cellarId);
+                        if (existingCellar is null)
+                        {
+                            return Results.NotFound("Cellar not found");
+                        }
+                        dbContext.Remove(existingCellar);
+                        dbContext.SaveChanges();
+                        return Results.Ok("Storage deleted successfully.");
+                    }
+                )
+                .Produces<OkResult>()
+                .RequireAuthorization()
+                .WithTags("Cellar")
+                .WithName("DeleteCellar")
+                .IncludeInOpenApi();
+
+            app.MapGet(
+                    "/cellar/{cellarId:int}/storages",
+                    (HttpContext context, ApplicationDbContext dbContext, int cellarId) =>
+                    {
+                        var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
+                            cellar.Id == cellarId
+                        );
+                        if (cellar is null)
+                        {
+                            return Results.NotFound();
+                        }
+                        return Results.Ok(cellar.Storages);
+                    }
+                )
+                .Produces<List<Storage>>()
+                .RequireAuthorization()
+                .WithTags("Cellar")
+                .WithName("GetCellarStorages")
+                .IncludeInOpenApi();
         }
     }
 }

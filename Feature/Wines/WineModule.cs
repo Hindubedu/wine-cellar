@@ -26,19 +26,13 @@ public class WinesModule : ICarterModule
     {
         app.MapGet(
                 "/wines",
-                (HttpContext context, ApplicationDbContext dbContext, int CellarId) =>
+                (HttpContext context, ApplicationDbContext dbContext) =>
                 {
-                    var name = context.User?.Identity?.Name;
-                    if (name is null)
-                    {
-                        throw new UnauthorizedAccessException();
-                    }
-
                     var wines = dbContext
-                        .Cellars.First(x => x.Id == CellarId)
-                        .Storages.SelectMany(storage => storage.Wines)
+                        .Wines.Where(wine =>
+                            wine.Storage.Cellar.Users.Any(user => user.Id == context.GetUserId())
+                        )
                         .ToList();
-
                     return wines;
                 }
             )
@@ -48,24 +42,30 @@ public class WinesModule : ICarterModule
             .WithName("GetWines")
             .IncludeInOpenApi();
 
-        // app.MapPost(
-        //         "/wines/add",
-        //         (HttpContext context, WineRequest wine, ApplicationDbContext dbContext) =>
-        //         {
-        //             var newWine = new Wine(wine);
-        //             var userId = context.GetUserId();
-        //             dbContext.Users.First(x => x.Id == userId).Wines.Add(newWine);
-        //             dbContext.SaveChanges();
-        //             return newWine;
-        //         }
-        //     )
-        //     .WithTags("Wines")
-        //     .WithName("AddWine")
-        //     .IncludeInOpenApi()
-        //     .RequireAuthorization();
+        app.MapPost(
+                "/wines/add",
+                (HttpContext context, WineRequest wine, ApplicationDbContext dbContext) =>
+                {
+                    var newWine = new Wine(wine);
+                    dbContext
+                        .Storages.Where(storage =>
+                            storage.Cellar.Users.FirstOrDefault(e => e.Id == context.GetUserId())
+                            != null
+                        )
+                        .First(x => x.Id == wine.StorageId)
+                        .Wines.Add(newWine);
+                    dbContext.SaveChanges();
+
+                    return newWine;
+                }
+            )
+            .WithTags("Wines")
+            .WithName("AddWine")
+            .IncludeInOpenApi()
+            .RequireAuthorization();
 
         app.MapDelete(
-                "/delete/{wineId:int}",
+                "/wine/delete/{wineId:int}",
                 (HttpContext context, ApplicationDbContext dbContext, int wineId) =>
                 {
                     var existingWine = dbContext.Wines.Find(wineId);
@@ -85,7 +85,7 @@ public class WinesModule : ICarterModule
             .IncludeInOpenApi();
 
         app.MapPost(
-                "/update",
+                "/wine/update",
                 (HttpContext context, ApplicationDbContext dbContext, WineRequest userWine) =>
                 {
                     var existingWine = dbContext.Wines.FirstOrDefault(wine =>
@@ -107,19 +107,26 @@ public class WinesModule : ICarterModule
             .WithName("UpdateWine")
             .IncludeInOpenApi();
 
-        // app.MapGet(
-        //         "/wine/{wineId:int}",
-        //         (HttpContext context, ApplicationDbContext dbContext, int wineId) =>
-        //         {
-        //             var wine = dbContext
-        //                 .Wines.Where(wine => wine.UserId == context.GetUserId())
-        //                 .FirstOrDefault(x => x.Id == wineId);
-        //             return wine;
-        //         }
-        //     )
-        //     .Produces<Wine>()
-        //     .WithTags("Wines")
-        //     .WithName("GetWine")
-        //     .IncludeInOpenApi();
+        app.MapGet(
+                "/wine/{wineId:int}",
+                (HttpContext context, ApplicationDbContext dbContext, int wineId) =>
+                {
+                    var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
+                        cellar.Users.FirstOrDefault(user => user.Id == context.GetUserId()) != null
+                    );
+
+                    if (cellar is null)
+                    {
+                        return Results.NotFound("Cellar not found");
+                    }
+
+                    var wine = dbContext.Wines.Find(wineId);
+                    return Results.Ok(wine);
+                }
+            )
+            .Produces<Wine>()
+            .WithTags("Wines")
+            .WithName("GetWine")
+            .IncludeInOpenApi();
     }
 }

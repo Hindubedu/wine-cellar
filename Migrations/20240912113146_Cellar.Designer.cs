@@ -11,7 +11,7 @@ using WineCellar.Persistence;
 namespace WineCellar.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240912084918_Cellar")]
+    [Migration("20240912113146_Cellar")]
     partial class Cellar
     {
         /// <inheritdoc />
@@ -56,11 +56,7 @@ namespace WineCellar.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Location");
-
                     b.HasIndex("Name");
-
-                    b.HasIndex("Temperature");
 
                     b.ToTable("Cellars");
                 });
@@ -92,14 +88,10 @@ namespace WineCellar.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Capacity");
-
                     b.HasIndex("CellarId");
 
                     b.HasIndex("Name")
                         .IsUnique();
-
-                    b.HasIndex("Temperature");
 
                     b.HasIndex("Type");
 
@@ -136,7 +128,7 @@ namespace WineCellar.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("ExpirationDate")
+                    b.Property<int?>("ExpirationTime")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -160,19 +152,13 @@ namespace WineCellar.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Description");
-
-                    b.HasIndex("ExpirationDate");
+                    b.HasIndex("ExpirationTime");
 
                     b.HasIndex("Name");
-
-                    b.HasIndex("Quantity");
 
                     b.HasIndex("StorageId");
 
                     b.HasIndex("Type");
-
-                    b.HasIndex("Year");
 
                     b.ToTable("Wines");
                 });

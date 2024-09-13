@@ -1,6 +1,7 @@
 using Carter;
 using Carter.OpenApi;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WineCellar.Domain;
 using WineCellar.Persistence;
 
@@ -23,7 +24,8 @@ namespace WineCellar.Feature.Cellars
                     (HttpContext context, ApplicationDbContext dbContext) =>
                     {
                         var cellars = dbContext
-                            .Cellars.Where(cellar =>
+                            .Cellars.Include(x => x.Storages)
+                            .Where(cellar =>
                                 cellar.Users.FirstOrDefault(user => user.Id == context.GetUserId())
                                 != null
                             )
@@ -130,9 +132,9 @@ namespace WineCellar.Feature.Cellars
                     "/cellar/{cellarId:int}/storages",
                     (HttpContext context, ApplicationDbContext dbContext, int cellarId) =>
                     {
-                        var cellar = dbContext.Cellars.FirstOrDefault(cellar =>
-                            cellar.Id == cellarId
-                        );
+                        var cellar = dbContext
+                            .Cellars.Include(x => x.Storages)
+                            .FirstOrDefault(cellar => cellar.Id == cellarId);
                         if (cellar is null)
                         {
                             return Results.NotFound();

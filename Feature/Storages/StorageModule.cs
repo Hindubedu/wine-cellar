@@ -34,15 +34,22 @@ public class StorageModule : ICarterModule
                     }
 
                     var newStorage = new Storage(storage);
-                    dbContext
-                        .Cellars.Where(cellar =>
-                            cellar.Users.FirstOrDefault(e => e.Id == context.GetUserId()) != null
-                        )
-                        .First(x => x.Id == storage.CellarId)
-                        .Storages.Add(newStorage);
+                    var cellar = dbContext
+                        .Cellars.Include(c => c.Storages)
+                        .Include(c => c.Users)
+                        .FirstOrDefault(c =>
+                            c.Id == storage.CellarId
+                            && c.Users.Any(u => u.Id == context.GetUserId())
+                        );
+                    if (cellar is null)
+                    {
+                        return Results.BadRequest();
+                    }
+                    cellar.Storages.Add(newStorage);
+
                     dbContext.SaveChanges();
 
-                    return newStorage;
+                    return Results.Ok(newStorage);
                 }
             )
             .WithTags("Storage")
